@@ -1,4 +1,4 @@
-post http://localhost:3010/register
+post http://localhost:3011/register
 Content-Type: application/json
 
 {
@@ -10,10 +10,26 @@ Content-Type: application/json
 
 ###
 
-post http://localhost:3010/login
+post http://localhost:3011/login
 Content-Type: application/json
 
 {
   "username":"JoeBiden",
   "password":"biden@123"
 }
+
+###
+get  http://localhost:3011/user/following
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3MzAyNTc0fQ.zGK3H8f1nxcfV_RDrgpkek0igjbS0ferNP7_wzlmST8
+
+###
+get  http://localhost:3011/user/followers
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3MzAyNTc0fQ.zGK3H8f1nxcfV_RDrgpkek0igjbS0ferNP7_wzlmST8
+
+###
+get http://localhost:3011/tweets/1
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3MzAyNTc0fQ.zGK3H8f1nxcfV_RDrgpkek0igjbS0ferNP7_wzlmST8
+
+###
+get http://localhost:3011/user/tweets/feed
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3MzAyNTc0fQ.zGK3H8f1nxcfV_RDrgpkek0igjbS0ferNP7_wzlmST8
