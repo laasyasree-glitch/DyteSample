@@ -16,8 +16,8 @@ const initializeAndSetUpDatabase = async () => {
       filename: dbPath,
       driver: sqlite3.Database,
     });
-    app.listen(3011, () =>
-      console.log("Local Host Server started at port 3011")
+    app.listen(3014, () =>
+      console.log("Local Host Server started at port 3014")
     );
   } catch (e) {
     console.log(e.message);
@@ -104,8 +104,13 @@ const getUserDetailsFromPayLoad = async (req, res, next) => {
         SELECT user_id from user where username='${username}'
     `;
   const userDetails = await db.get(getUserId);
-  req.userId = userDetails.user_id;
-  next();
+  if (userDetails === undefined) {
+    res.status(401);
+    res.send("Bad Request");
+  } else {
+    req.userId = userDetails.user_id;
+    next();
+  }
 };
 
 app.get(
@@ -165,16 +170,29 @@ app.get(
 
     if (check.user_id in list_a) {
       const finalQuery = `
-         select tweet,count(like_id) as likes, count(reply_id) as replies, date_time as date_time 
-        from (like inner join reply on like.tweet_id = reply.tweet_id)
-        as T inner join tweet
-        on tweet.tweet_id= T.tweet_id
-    
+         select tweet,count(like_id) as likes, date_time 
+        from like inner join tweet on tweet.tweet_id= like.tweet_id
         where tweet.tweet_id=${tweetId}
         group by tweet.tweet_id
       `;
       const result1 = await db.get(finalQuery);
-      res.send(result1);
+
+      const finalQuery1 = `
+         select count(reply_id) as replies 
+        from reply inner join tweet on tweet.tweet_id= reply.tweet_id
+        where tweet.tweet_id=${tweetId}
+        group by tweet.tweet_id
+      `;
+      const result2 = await db.get(finalQuery1);
+
+      const new_obj = {
+        tweet: result1.tweet,
+        likes: result1.likes,
+        replies: result2.replies,
+        dateTime: result1.date_time,
+      };
+
+      res.send(new_obj);
     } else {
       res.status(401);
       res.send("Invalid Request");
@@ -202,6 +220,128 @@ app.get(
 
     const result1 = await db.all(extractQuery);
     res.send(result1);
+  }
+);
+
+app.get(
+  "/tweets/:tweetId/likes/",
+  authenticationToken,
+  getUserDetailsFromPayLoad,
+  async (req, res) => {
+    const userId = req.userId;
+    const { tweetId } = req.params;
+
+    const getQuery = `
+        select user_id from user where user_id in
+        (select following_user_id from follower
+            where follower_user_id=${userId})
+    `;
+
+    const result = await db.all(getQuery);
+    let list_a = result.map((x) => x.user_id);
+
+    const getIdOfTweetId = `
+            SELECT user_id from tweet where  tweet_id=${tweetId}
+    `;
+    const check = await db.get(getIdOfTweetId);
+
+    if (check.user_id in list_a) {
+      const finalQuery = `
+        select distinct name from (like inner join tweet on like.tweet_id=tweet.tweet_id) as T
+        inner join user on T.user_id=user.user_id
+      `;
+      const result1 = await db.all(finalQuery);
+      const list_b = result1.map((x) => x.name);
+      res.send({ likes: list_b });
+    } else {
+      res.status(401);
+      res.send("Invalid Request");
+    }
+  }
+);
+
+app.get(
+  "/tweets/:tweetId/replies/",
+  authenticationToken,
+  getUserDetailsFromPayLoad,
+  async (req, res) => {
+    const userId = req.userId;
+    const { tweetId } = req.params;
+
+    const getQuery = `
+        select user_id from user where user_id in
+        (select following_user_id from follower
+            where follower_user_id=${userId})
+    `;
+
+    const result = await db.all(getQuery);
+    let list_a = result.map((x) => x.user_id);
+
+    const getIdOfTweetId = `
+            SELECT user_id from tweet where  tweet_id=${tweetId}
+    `;
+    const check = await db.get(getIdOfTweetId);
+
+    if (check.user_id in list_a) {
+      const finalQuery = `
+        select name,reply from (reply inner join tweet on reply.tweet_id=tweet.tweet_id) as T
+        inner join user on T.user_id=user.user_id
+      `;
+      const result1 = await db.all(finalQuery);
+      res.send({ replies: result1 });
+    } else {
+      res.status(401);
+      res.send("Invalid Request");
+    }
+  }
+);
+
+// app.get(
+//   "/user/tweets/",
+//   authenticationToken,
+//   getUserDetailsFromPayLoad,
+//   async (req, res) => {
+//     const userId = req.userId;
+//     const finalQuery = `
+//          select tweet,count(like_id) as likes, count(reply_id) date_time as dateTime
+//         from (like inner join tweet on tweet.tweet_id= like.tweet_id)
+//         as T left join T.tweet_id
+//         where tweet.user_id=${userId}
+//         group by tweet.tweet_id order by dateTime desc
+//       `;
+//     const result1 = await db.all(finalQuery);
+//     res.send(result1);
+//   }
+// );
+
+app.post(
+  "/user/tweets/",
+  authenticationToken,
+  getUserDetailsFromPayLoad,
+  async (req, res) => {
+    const userId = req.userId;
+    const { tweet } = req.body;
+    const date = new Date();
+    const postQuery = `
+        inSert into tweet(tweet,user_id)
+        values('${tweet}',${userId})
+    `;
+    const result1 = await db.run(postQuery);
+    res.send("Created a Tweet");
+  }
+);
+
+app.delete(
+  "/tweets/:tweetId/",
+  authenticationToken,
+  getUserDetailsFromPayLoad,
+  async (req, res) => {
+    const { tweetId } = req.params;
+    const delQuery = `
+        delete from tweet where tweet_id=${tweetId}
+    `;
+    const result1 = await db.run(delQuery);
+    res.send("Tweet Removed");
   }
 );
 

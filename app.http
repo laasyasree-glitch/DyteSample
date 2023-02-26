@@ -1,4 +1,4 @@
-post http://localhost:3011/register
+post http://localhost:3014/register
 Content-Type: application/json
 
 {
@@ -10,7 +10,7 @@ Content-Type: application/json
 
 ###
 
-post http://localhost:3011/login
+post http://localhost:3014/login
 Content-Type: application/json
 
 {
@@ -19,17 +19,42 @@ Content-Type: application/json
 }
 
 ###
-get  http://localhost:3011/user/following
-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3MzAyNTc0fQ.zGK3H8f1nxcfV_RDrgpkek0igjbS0ferNP7_wzlmST8
+get  http://localhost:3014/user/following
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3Mzk4ODU1fQ.Z0EeggFOp-8VAQ6z1n3yOnw9kWID4LqONuoidd_85QY
+###
+get  http://localhost:3014/user/followers
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3MzM5MDM5fQ.xwqCKVvl3xSBeQ6sHHHdHb6VIoQqncu-5aPYE0EbYCA
 
 ###
-get  http://localhost:3011/user/followers
-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3MzAyNTc0fQ.zGK3H8f1nxcfV_RDrgpkek0igjbS0ferNP7_wzlmST8
+get http://localhost:3014/tweets/1
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3MzM5MDM5fQ.xwqCKVvl3xSBeQ6sHHHdHb6VIoQqncu-5aPYE0EbYCA
 
 ###
-get http://localhost:3011/tweets/1
-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3MzAyNTc0fQ.zGK3H8f1nxcfV_RDrgpkek0igjbS0ferNP7_wzlmST8
+get http://localhost:3014/user/tweets/feed
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3MzM5MDM5fQ.xwqCKVvl3xSBeQ6sHHHdHb6VIoQqncu-5aPYE0EbYCA
 
 ###
-get http://localhost:3011/user/tweets/feed
-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3MzAyNTc0fQ.zGK3H8f1nxcfV_RDrgpkek0igjbS0ferNP7_wzlmST8
+get  http://localhost:3014/tweets/2/likes/
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3MzM5MDM5fQ.xwqCKVvl3xSBeQ6sHHHdHb6VIoQqncu-5aPYE0EbYCA
+
+###
+get  http://localhost:3014/tweets/2/replies/
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3MzM5MDM5fQ.xwqCKVvl3xSBeQ6sHHHdHb6VIoQqncu-5aPYE0EbYCA
+
+###
+
+get  http://localhost:3014/user/tweets/
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3MzM5MDM5fQ.xwqCKVvl3xSBeQ6sHHHdHb6VIoQqncu-5aPYE0EbYCA
+
+###
+post http://localhost:3014/user/tweets/
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3MzM5MDM5fQ.xwqCKVvl3xSBeQ6sHHHdHb6VIoQqncu-5aPYE0EbYCA
+Content-Type: application/json
+
+{
+   "tweet": "The Mornings..."
+}
+
+###
+DELETE http://localhost:3014/tweets/10
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3MzM5MDM5fQ.xwqCKVvl3xSBeQ6sHHHdHb6VIoQqncu-5aPYE0EbYCA
