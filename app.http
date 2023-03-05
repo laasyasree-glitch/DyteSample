@@ -1,60 +1,63 @@
-post http://localhost:3014/register
+post http://localhost:3000/login
 Content-Type: application/json
 
 {
-  "username": "adam_richard",
-  "password": "richard_567",
-  "name": "Adam Richard",
-  "gender": "male"
+  "id": 1,
+  "name":"Ram"
 }
 
 ###
+get http://localhost:3000/faculty/1
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiUmFtIiwicm9sZSI6InN0dWRlbnQiLCJpYXQiOjE2Nzc5OTM5ODZ9.PSQspZh9wPyBa6_qrSWTXhP373fSZYgqEKFX3rbOjxU
+###
+get http://localhost:3000/course/1
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiUmFtIiwicm9sZSI6InN0dWRlbnQiLCJpYXQiOjE2Nzc5OTM5ODZ9.PSQspZh9wPyBa6_qrSWTXhP373fSZYgqEKFX3rbOjxU
 
-post http://localhost:3014/login
+###
+post http://localhost:3000/login
 Content-Type: application/json
 
 {
-  "username":"JoeBiden",
-  "password":"biden@123"
+  "id": 4,
+  "name":"Lasya"
 }
-
 ###
-get  http://localhost:3014/user/following
-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3Mzk4ODU1fQ.Z0EeggFOp-8VAQ6z1n3yOnw9kWID4LqONuoidd_85QY
-###
-get  http://localhost:3014/user/followers
-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3Mzk4ODU1fQ.Z0EeggFOp-8VAQ6z1n3yOnw9kWID4LqONuoidd_85QY
-
-###
-get http://localhost:3014/tweets/1
-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3Mzk4ODU1fQ.Z0EeggFOp-8VAQ6z1n3yOnw9kWID4LqONuoidd_85QY
-
-###
-get http://localhost:3014/user/tweets/feed
-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3MzM5MDM5fQ.xwqCKVvl3xSBeQ6sHHHdHb6VIoQqncu-5aPYE0EbYCA
-
-###
-get  http://localhost:3014/tweets/2/likes/
-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3MzM5MDM5fQ.xwqCKVvl3xSBeQ6sHHHdHb6VIoQqncu-5aPYE0EbYCA
-
-###
-get  http://localhost:3014/tweets/2/replies/
-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3MzM5MDM5fQ.xwqCKVvl3xSBeQ6sHHHdHb6VIoQqncu-5aPYE0EbYCA
-
-###
-
-get  http://localhost:3014/user/tweets/
-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3MzM5MDM5fQ.xwqCKVvl3xSBeQ6sHHHdHb6VIoQqncu-5aPYE0EbYCA
-
-###
-post http://localhost:3014/user/tweets/
-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3MzM5MDM5fQ.xwqCKVvl3xSBeQ6sHHHdHb6VIoQqncu-5aPYE0EbYCA
+post http://localhost:3000/admin/slot
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiTGFzeWEiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE2Nzc5OTYxOTd9.sJm5Vbq_4_e3XPNiieK9QKcGan4qcOETKam64xd2Wvs
 Content-Type: application/json
 
 {
-   "tweet": "The Mornings..."
+  "id": "A3",
+  "timings": [
+    {
+      "day": "mon",
+      "start": "2023-03-03T15:15:22Z",
+      "end": "2019-08-24T16:00:22Z"
+    }
+  ]
 }
 
 ###
-DELETE http://localhost:3014/tweets/10
-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3MzM5MDM5fQ.xwqCKVvl3xSBeQ6sHHHdHb6VIoQqncu-5aPYE0EbYCA
+get http://localhost:3000/timetable
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiUmFtIiwicm9sZSI6InN0dWRlbnQiLCJpYXQiOjE2Nzc5OTM5ODZ9.PSQspZh9wPyBa6_qrSWTXhP373fSZYgqEKFX3rbOjxU
+
+
+###
+post http://localhost:3000/admin/faculty
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiTGFzeWEiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE2Nzc5OTYxOTd9.sJm5Vbq_4_e3XPNiieK9QKcGan4qcOETKam64xd2Wvs
+Content-Type: application/json
+
+{
+  "id": "6",
+  "name": "Udit"
+}
+
+###
+post http://localhost:3000/admin/student
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiTGFzeWEiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE2Nzc5OTYxOTd9.sJm5Vbq_4_e3XPNiieK9QKcGan4qcOETKam64xd2Wvs
+Content-Type: application/json
+
+{
+  "id": "6",
+  "name": "Jyothsna"
+}

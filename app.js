@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 let db = null;
 
-const dbPath = path.join(__dirname, "twitterClone.db");
+const dbPath = path.join(__dirname, "dyte.db");
 
 const initializeAndSetUpDatabase = async () => {
   try {
@@ -16,8 +16,8 @@ const initializeAndSetUpDatabase = async () => {
       filename: dbPath,
       driver: sqlite3.Database,
     });
-    app.listen(3014, () =>
-      console.log("Local Host Server started at port 3014")
+    app.listen(3000, () =>
+      console.log("Local Host Server started at port 3000")
     );
   } catch (e) {
     console.log(e.message);
@@ -26,32 +26,6 @@ const initializeAndSetUpDatabase = async () => {
 };
 
 initializeAndSetUpDatabase();
-
-app.post("/register/", async (req, res) => {
-  const { username, password, name, gender } = req.body;
-  if (password.length < 6) {
-    res.status(400);
-    res.send("Password is too short");
-  } else {
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
-    const selectQuery = `
-        SELECT * FROM user where username='${username}'
-    `;
-    const dbUser = await db.get(selectQuery);
-    if (dbUser === undefined) {
-      const createUserQuery = `
-        INSERT INTO user(username,password,name,gender)
-        values('${username}','${hashedPassword}','${name}','${gender}')
-        `;
-      const dbResponse = await db.run(createUserQuery);
-      res.status(200);
-      res.send("User created successfully");
-    } else {
-      res.status(400);
-      res.send("User already exists");
-    }
-  }
-});
 
 const authenticationToken = (req, res, next) => {
   let jwtToken;
@@ -68,291 +42,154 @@ const authenticationToken = (req, res, next) => {
         res.status(401);
         res.send("Invalid JWT Token");
       } else {
-        req.username = payload.username;
+        req.name = payload.name;
         next();
       }
     });
   }
 };
 app.post("/login/", async (req, res) => {
-  const { username, password } = req.body;
+  const { id, name } = req.body;
   const selectQuery = `
-    SELECT * FROM USER WHERE USERNAME='${username}';
+    SELECT * FROM student WHERE id='${id}';
     `;
   const dbUser = await db.get(selectQuery);
+  console.log(dbUser);
   if (dbUser === undefined) {
     res.status(400);
     res.send("Invalid user");
   } else {
-    const isPasswordMatch = await bcrypt.compare(password, dbUser.password);
-    if (isPasswordMatch === true) {
-      const payload = {
-        username: username,
-      };
-      const jwtToken = jwt.sign(payload, "MY_SECRET_TOKEN");
-      res.send({ jwtToken });
-    } else {
-      res.status(400);
-      res.send("Invalid password");
-    }
+    const getRole = `    SELECT role FROM student WHERE id='${id}';
+    `;
+    const roleResult = await db.get(getRole);
+    const payload = {
+      name: name,
+      role: roleResult.role,
+    };
+    console.log(payload);
+    const jwtToken = jwt.sign(payload, "MY_SECRET_TOKEN");
+    res.send({ jwtToken });
   }
 });
 
 const getUserDetailsFromPayLoad = async (req, res, next) => {
-  let { username } = req;
+  let { name } = req;
   const getUserId = `
-        SELECT user_id from user where username='${username}'
+        SELECT id,role from student where name='${name}'
     `;
   const userDetails = await db.get(getUserId);
   if (userDetails === undefined) {
     res.status(401);
     res.send("Bad Request");
   } else {
-    req.userId = userDetails.user_id;
+    req.userId = userDetails.id;
+    req.role = userDetails.role;
     next();
   }
 };
 
-app.get(
-  "/user/following",
+app.get("/faculty/:faculty_id", authenticationToken, async (req, res) => {
+  const { faculty_id } = req.params;
+  const getQuery = `
+       select * from faculty where id=${faculty_id}
+    `;
+  const result = await db.get(getQuery);
+  const obj = { susses: true, data: result };
+  res.send(obj);
+});
+
+app.get("/course/:course_id/", authenticationToken, async (req, res) => {
+  const { course_id } = req.params;
+  const getQuery = `
+       select *
+       from course inner join SLOT_COURSE on 
+       course.id=SLOT_COURSE.course_id
+       where course.id=${course_id}
+    `;
+  const result = await db.get(getQuery);
+  res.send(result);
+});
+
+app.post(
+  "/admin/slot",
   authenticationToken,
   getUserDetailsFromPayLoad,
   async (req, res) => {
-    const userId = req.userId;
+    const { role } = req;
+    if (role === "admin") {
+      const { id, timings } = req.body;
+      const { day, start, end } = timings;
+      const postSlotQuery = `
+      Insert into slot values('${id}');
+      `;
+      const postTimingsQuery = `
+      Insert into timings values('${day}','${start}','${end}','${id}');
+      `;
+      const slot_result = db.run(postSlotQuery);
+      const time_result = db.run(postTimingsQuery);
+      const obj = { susses: true, data: req.body };
+      res.send(obj);
+    } else {
+      res.status(400);
+      res.send("Invalid Access");
+    }
+  }
+);
+
+app.get(
+  "/timetable/",
+  authenticationToken,
+  getUserDetailsFromPayLoad,
+  async (req, res) => {
+    const { userId } = req;
+    console.log(userId);
     const getQuery = `
-        select name from user where user_id in
-        (select following_user_id from follower
-            where follower_user_id=${userId})
+        select * from registered_courses
     `;
-    const result = await db.all(getQuery);
+    const result = db.all(getQuery);
     res.send(result);
-  }
-);
-
-app.get(
-  "/user/followers",
-  authenticationToken,
-  getUserDetailsFromPayLoad,
-  async (req, res) => {
-    const userId = req.userId;
-    const getQuery = `
-        select name from user where user_id in(
-            select follower_user_id from follower
-            where following_user_id=${userId}
-        )
-    `;
-    const result = await db.all(getQuery);
-    res.send(result);
-  }
-);
-
-app.get(
-  "/tweets/:tweetId/",
-  authenticationToken,
-  getUserDetailsFromPayLoad,
-  async (req, res) => {
-    const userId = req.userId;
-    const { tweetId } = req.params;
-
-    const getQuery = `
-        select user_id from user where user_id in
-        (select following_user_id from follower
-            where follower_user_id=${userId})
-    `;
-
-    const result = await db.all(getQuery);
-    let list_a = result.map((x) => x.user_id);
-
-    const getIdOfTweetId = `
-            SELECT user_id from tweet where  tweet_id=${tweetId}
-    `;
-    const check = await db.get(getIdOfTweetId);
-
-    if (check.user_id in list_a) {
-      const finalQuery = `
-         select tweet,count(like_id) as likes, date_time 
-        from like inner join tweet on tweet.tweet_id= like.tweet_id
-        where tweet.tweet_id=${tweetId}
-        group by tweet.tweet_id
-      `;
-      const result1 = await db.get(finalQuery);
-
-      const finalQuery1 = `
-         select count(reply_id) as replies 
-        from reply inner join tweet on tweet.tweet_id= reply.tweet_id
-        where tweet.tweet_id=${tweetId}
-        group by tweet.tweet_id
-      `;
-      const result2 = await db.get(finalQuery1);
-
-      const new_obj = {
-        tweet: result1.tweet,
-        likes: result1.likes,
-        replies: result2.replies,
-        dateTime: result1.date_time,
-      };
-
-      res.send(new_obj);
-    } else {
-      res.status(401);
-      res.send("Invalid Request");
-    }
-  }
-);
-
-app.get(
-  "/user/tweets/feed/",
-  authenticationToken,
-  getUserDetailsFromPayLoad,
-  async (req, res) => {
-    const userId = req.userId;
-
-    const extractQuery = `
-        select username, tweet, date_time as dateTime from tweet 
-        natural join user where user_id in
-        
-            (
-                select following_user_id from follower
-                where follower_user_id=${userId}
-            )
-        order by date_time desc limit 4
-    `;
-
-    const result1 = await db.all(extractQuery);
-    res.send(result1);
-  }
-);
-
-app.get(
-  "/tweets/:tweetId/likes/",
-  authenticationToken,
-  getUserDetailsFromPayLoad,
-  async (req, res) => {
-    const userId = req.userId;
-    const { tweetId } = req.params;
-
-    const getQuery = `
-        select user_id from user where user_id in
-        (select following_user_id from follower
-            where follower_user_id=${userId})
-    `;
-
-    const result = await db.all(getQuery);
-    let list_a = result.map((x) => x.user_id);
-
-    const getIdOfTweetId = `
-            SELECT user_id from tweet where  tweet_id=${tweetId}
-    `;
-    const check = await db.get(getIdOfTweetId);
-
-    if (check.user_id in list_a) {
-      const finalQuery = `
-        select distinct name from (like inner join tweet on like.tweet_id=tweet.tweet_id) as T
-        inner join user on T.user_id=user.user_id
-      `;
-      const result1 = await db.all(finalQuery);
-      const list_b = result1.map((x) => x.name);
-      res.send({ likes: list_b });
-    } else {
-      res.status(401);
-      res.send("Invalid Request");
-    }
-  }
-);
-
-app.get(
-  "/tweets/:tweetId/replies/",
-  authenticationToken,
-  getUserDetailsFromPayLoad,
-  async (req, res) => {
-    const userId = req.userId;
-    const { tweetId } = req.params;
-
-    const getQuery = `
-        select user_id from user where user_id in
-        (select following_user_id from follower
-            where follower_user_id=${userId})
-    `;
-
-    const result = await db.all(getQuery);
-    let list_a = result.map((x) => x.user_id);
-
-    const getIdOfTweetId = `
-            SELECT user_id from tweet where  tweet_id=${tweetId}
-    `;
-    const check = await db.get(getIdOfTweetId);
-
-    if (check.user_id in list_a) {
-      const finalQuery = `
-        select name,reply from (reply inner join tweet on reply.tweet_id=tweet.tweet_id) as T
-        inner join user on T.user_id=user.user_id
-      `;
-      const result1 = await db.all(finalQuery);
-      res.send({ replies: result1 });
-    } else {
-      res.status(401);
-      res.send("Invalid Request");
-    }
-  }
-);
-
-app.get(
-  "/user/tweets/",
-  authenticationToken,
-  getUserDetailsFromPayLoad,
-  async (req, res) => {
-    const userId = req.userId;
-    const tweetsQuery = `
-   SELECT
-   tweet,
-   (
-       SELECT COUNT(like_id)
-       FROM like
-       WHERE tweet_id=tweet.tweet_id
-   ) AS likes,
-   (
-       SELECT COUNT(reply_id)
-       FROM reply
-       WHERE tweet_id=tweet.tweet_id
-   ) AS replies,
-   date_time AS dateTime
-   FROM tweet
-   WHERE user_id= ${userId}
-   `;
-    const result1 = await db.all(tweetsQuery);
-    res.send(result1);
   }
 );
 
 app.post(
-  "/user/tweets/",
+  "/admin/faculty",
   authenticationToken,
   getUserDetailsFromPayLoad,
   async (req, res) => {
-    const userId = req.userId;
-    const { tweet } = req.body;
-    const date = new Date();
-    const postQuery = `
-        inSert into tweet(tweet,user_id)
-        values('${tweet}',${userId})
-    `;
-    const result1 = await db.run(postQuery);
-    res.send("Created a Tweet");
+    const { role } = req;
+    if (role === "admin") {
+      const { id, name } = req.body;
+      const postFacultyQuery = `
+      Insert into faculty values(${id},'${name}');
+      `;
+      const time_result = db.run(postFacultyQuery);
+      const obj = { susses: true, data: req.body };
+      res.send(obj);
+    } else {
+      res.status(400);
+      res.send("Invalid Access");
+    }
   }
 );
 
-app.delete(
-  "/tweets/:tweetId/",
+app.post(
+  "/admin/student",
   authenticationToken,
   getUserDetailsFromPayLoad,
   async (req, res) => {
-    const { tweetId } = req.params;
-    const delQuery = `
-        delete from tweet where tweet_id=${tweetId}
-    `;
-    const result1 = await db.run(delQuery);
-    res.send("Tweet Removed");
+    const { role } = req;
+    if (role === "admin") {
+      const { id, name } = req.body;
+      const postStudentQuery = `
+      Insert into student values(${id},'${name}',"student");
+      `;
+      const time_result = db.run(postStudentQuery);
+      const obj = { susses: true, data: req.body };
+      res.send(obj);
+    } else {
+      res.status(400);
+      res.send("Invalid Access");
+    }
   }
 );
-
 module.exports = app;
