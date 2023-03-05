@@ -59,13 +59,11 @@ Slot_Course -> Junction Table
 
 **Registered_Courses Table**
 
-| Column   | Type    |
-| -------- | ------- |
-| id       | INTEGER |
-| slot_course_id
-           | VARCHAR |
-| student_id
-           | VARCHAR |
+| Column         | Type    |
+| -------------- | ------- |
+| id             | INTEGER |
+| slot_course_id | VARCHAR |
+| student_id     | VARCHAR |
 
 Please git clone my project in your system, for testing purpose.
 
