@@ -1,14 +1,21 @@
 # VIT FFCS REGISTRATION
 
-We have 6 tables, Faculty, Student, Course, Slot, Timings, Registered_Courses, Slot_Course.
+We have 7 tables, Faculty, Student, Course, Slot, Timings, Registered_Courses, and Slot_Course which were under dyte.db database
+
+API calls were been made in app.http file
 
 Relationship:
 
 Faculty -> Course: Many to One.
+
 Slot -> Course: Many to Many.
+
 Slot -> Timing: One to many.
+
 Student -> Registered_Courses: One to Many.
+
 Slot_Course -> Junction Table
+
 
 **Faculty**
 
