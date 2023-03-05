@@ -125,8 +125,8 @@ app.post(
       const postTimingsQuery = `
       Insert into timings values('${day}','${start}','${end}','${id}');
       `;
-      const slot_result = db.run(postSlotQuery);
-      const time_result = db.run(postTimingsQuery);
+      const slot_result = await db.run(postSlotQuery);
+      const time_result = await db.run(postTimingsQuery);
       const obj = { susses: true, data: req.body };
       res.send(obj);
     } else {
@@ -144,9 +144,33 @@ app.get(
     const { userId } = req;
     console.log(userId);
     const getQuery = `
-        select * from registered_courses
+       SELECT
+  COURSE.name AS COURSE_NAME,
+  COURSE.course_type AS COURSE_TYPE,
+  FACULTY.name AS FACULTY_NAME,
+  SLOT_COURSE.slot_id AS SLOT_ID,
+  TIMINGS.DAY AS DAY,
+  TIMINGS.START AS START,
+  TIMINGS.
+END AS
+END
+FROM
+  (
+    (
+      (
+        REGISTERED_COURSES
+        INNER JOIN SLOT_COURSE ON REGISTERED_COURSES.slot_course_id = SLOT_COURSE.id
+      ) AS t
+      INNER JOIN COURSE ON t.course_id = COURSE.id
+    ) AS r
+    INNER JOIN FACULTY ON r.faculty_id = FACULTY.id
+  ) AS s
+  INNER JOIN timings ON s.slot_id = timings.slot_id
+WHERE
+  REGISTERED_COURSES.student_id = ${userId};
     `;
-    const result = db.all(getQuery);
+    const result = await db.all(getQuery);
+    console.log(result);
     res.send(result);
   }
 );
@@ -162,7 +186,7 @@ app.post(
       const postFacultyQuery = `
       Insert into faculty values(${id},'${name}');
       `;
-      const time_result = db.run(postFacultyQuery);
+      const time_result = await db.run(postFacultyQuery);
       const obj = { susses: true, data: req.body };
       res.send(obj);
     } else {
@@ -183,7 +207,7 @@ app.post(
       const postStudentQuery = `
       Insert into student values(${id},'${name}',"student");
       `;
-      const time_result = db.run(postStudentQuery);
+      const time_result = await db.run(postStudentQuery);
       const obj = { susses: true, data: req.body };
       res.send(obj);
     } else {
@@ -192,4 +216,82 @@ app.post(
     }
   }
 );
+
+app.post(
+  "/admin/course/",
+  authenticationToken,
+  getUserDetailsFromPayLoad,
+  async (req, res) => {
+    const { role } = req;
+    if (role === "admin") {
+      const { id, name, slot_ids, faculty_ids, course_type } = req.body;
+      const count = `
+      SELECT COUNT(*) FROM slot_course;
+      `;
+      const primaryId = await db.get(count);
+      const resultId = primaryId + 1;
+      for (let i = 0; i < faculty_ids.length; i++) {
+        const postQuery = `
+                    insert into course values(${id},'${name}','${course_type}',${faculty_ids[i]})
+                `;
+        const postSlotCourse = `
+                    insert into slot_course values (${resultId},'${slot_ids[i]}',${id})
+                `;
+        const result1 = await db.run(postQuery);
+        const result2 = await db.run(postSlotCourse);
+      }
+      const obj = { success: true, data: req.body };
+      res.send(obj);
+    } else {
+      res.status(400);
+      res.send("Invalid Access");
+    }
+  }
+);
+
+app.post(
+  "/register/",
+  authenticationToken,
+  getUserDetailsFromPayLoad,
+  async (req, res) => {
+    const { userId } = req;
+    const { course_id, slot_ids } = req.body;
+    const getQuery = `
+    select * from REGISTERED_COURSES
+        INNER JOIN SLOT_COURSE ON REGISTERED_COURSES.slot_course_id = SLOT_COURSE.id
+    `;
+    const result = await db.all(getQuery);
+    let flag = 1;
+    for (let i = 0; i < result.length; i++) {
+      if (result.course_id === course_id || result.slot_id === slot_ids) {
+        flag = 0;
+        break;
+      }
+    }
+    if (flag === 1) {
+      const count = `
+      SELECT COUNT(*) FROM registered_courses;
+      `;
+      const primaryId = await db.get(count);
+      const resultId = primaryId + 1;
+      const getSlotCourseId = `
+      SELECT id FROM slot_course where course_id=${course_id} and slot_id='${slot_ids}';
+      `;
+      const slot_course_id = await db.get(getSlotCourseId);
+      const postQuery = `
+      INSERT INTO registered_courses values(${resultId},${slot_course_id},${userId})
+      `;
+      const finalResult = await db.run(postQuery);
+
+      const response = `
+      SELECT * FROM registered_courses where student_id=${userId};
+      `;
+      const responseObj = await db.all(response);
+      res.send({ success: true, data: responseObj });
+    } else {
+      console.log("Slot Crash, Try Again!!!");
+    }
+  }
+);
+
 module.exports = app;

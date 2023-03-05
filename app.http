@@ -39,8 +39,7 @@ Content-Type: application/json
 
 ###
 get http://localhost:3000/timetable
-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiUmFtIiwicm9sZSI6InN0dWRlbnQiLCJpYXQiOjE2Nzc5OTM5ODZ9.PSQspZh9wPyBa6_qrSWTXhP373fSZYgqEKFX3rbOjxU
-
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiUmFtIiwicm9sZSI6InN0dWRlbnQiLCJpYXQiOjE2NzgwMDg1MDN9.l-eBeOBsIpp-9Y0VxNRF3vjvOBcTHG1X8U-_YULCWo0
 
 ###
 post http://localhost:3000/admin/faculty
@@ -60,4 +59,33 @@ Content-Type: application/json
 {
   "id": "6",
   "name": "Jyothsna"
+}
+
+###
+
+post http://localhost:3000/admin/course
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiTGFzeWEiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE2Nzc5OTYxOTd9.sJm5Vbq_4_e3XPNiieK9QKcGan4qcOETKam64xd2Wvs
+Content-Type: application/json
+
+{
+  "id": "6",
+  "name": "Lean Start-up Management",
+  "slot_ids": [
+    "A2","C2","E2"
+  ],
+  "faculty_ids": [
+    4,5,6
+  ],
+  "course_type": "THEORY"
+}
+
+###
+post http://localhost:3000/register
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiUmFtIiwicm9sZSI6InN0dWRlbnQiLCJpYXQiOjE2Nzc5OTM5ODZ9.PSQspZh9wPyBa6_qrSWTXhP373fSZYgqEKFX3rbOjxU
+Content-Type: application/json
+
+{
+  "course_id": "2",
+  "faculty_id": "6",
+  "slot_ids":  "A2"
 }
