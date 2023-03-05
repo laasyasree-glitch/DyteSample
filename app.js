@@ -52,6 +52,8 @@ const authenticationToken = (req, res, next) => {
     });
   }
 };
+
+//Login API
 app.post("/login/", async (req, res) => {
   const { id, name } = req.body;
   const selectQuery = `
