@@ -60,7 +60,7 @@ const authenticationToken = (req, res, next) => {
     jwtToken = authHeader.split(" ")[1];
   }
   if (jwtToken === undefined) {
-    res.send(401);
+    res.status(401);
     res.send("Invalid JWT Token");
   } else {
     jwt.verify(jwtToken, "MY_SECRET_TOKEN", async (error, payload) => {
@@ -296,23 +296,33 @@ app.get(
   }
 );
 
-// app.get(
-//   "/user/tweets/",
-//   authenticationToken,
-//   getUserDetailsFromPayLoad,
-//   async (req, res) => {
-//     const userId = req.userId;
-//     const finalQuery = `
-//          select tweet,count(like_id) as likes, count(reply_id) date_time as dateTime
-//         from (like inner join tweet on tweet.tweet_id= like.tweet_id)
-//         as T left join T.tweet_id
-//         where tweet.user_id=${userId}
-//         group by tweet.tweet_id order by dateTime desc
-//       `;
-//     const result1 = await db.all(finalQuery);
-//     res.send(result1);
-//   }
-// );
+app.get(
+  "/user/tweets/",
+  authenticationToken,
+  getUserDetailsFromPayLoad,
+  async (req, res) => {
+    const userId = req.userId;
+    const tweetsQuery = `
+   SELECT
+   tweet,
+   (
+       SELECT COUNT(like_id)
+       FROM like
+       WHERE tweet_id=tweet.tweet_id
+   ) AS likes,
+   (
+       SELECT COUNT(reply_id)
+       FROM reply
+       WHERE tweet_id=tweet.tweet_id
+   ) AS replies,
+   date_time AS dateTime
+   FROM tweet
+   WHERE user_id= ${userId}
+   `;
+    const result1 = await db.all(tweetsQuery);
+    res.send(result1);
+  }
+);
 
 app.post(
   "/user/tweets/",

@@ -23,11 +23,11 @@ get  http://localhost:3014/user/following
 Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3Mzk4ODU1fQ.Z0EeggFOp-8VAQ6z1n3yOnw9kWID4LqONuoidd_85QY
 ###
 get  http://localhost:3014/user/followers
-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3MzM5MDM5fQ.xwqCKVvl3xSBeQ6sHHHdHb6VIoQqncu-5aPYE0EbYCA
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3Mzk4ODU1fQ.Z0EeggFOp-8VAQ6z1n3yOnw9kWID4LqONuoidd_85QY
 
 ###
 get http://localhost:3014/tweets/1
-Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3MzM5MDM5fQ.xwqCKVvl3xSBeQ6sHHHdHb6VIoQqncu-5aPYE0EbYCA
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjc3Mzk4ODU1fQ.Z0EeggFOp-8VAQ6z1n3yOnw9kWID4LqONuoidd_85QY
 
 ###
 get http://localhost:3014/user/tweets/feed
