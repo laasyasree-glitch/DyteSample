@@ -8,8 +8,11 @@ const app = express();
 app.use(express.json());
 let db = null;
 
+// __dirname: It's a variable in commonJS module that returns the path of the folder.
+
 const dbPath = path.join(__dirname, "dyte.db");
 
+//Initializing Database and server
 const initializeAndSetUpDatabase = async () => {
   try {
     db = await open({
@@ -27,6 +30,7 @@ const initializeAndSetUpDatabase = async () => {
 
 initializeAndSetUpDatabase();
 
+//Authentication(middleware) using JWT token
 const authenticationToken = (req, res, next) => {
   let jwtToken;
   const authHeader = req.headers["authorization"];
@@ -72,6 +76,7 @@ app.post("/login/", async (req, res) => {
   }
 });
 
+//To get the user details from payload
 const getUserDetailsFromPayLoad = async (req, res, next) => {
   let { name } = req;
   const getUserId = `
@@ -88,46 +93,62 @@ const getUserDetailsFromPayLoad = async (req, res, next) => {
   }
 };
 
+//GET Faculty details with respect to faculty_id
 app.get("/faculty/:faculty_id", authenticationToken, async (req, res) => {
   const { faculty_id } = req.params;
+
   const getQuery = `
        select * from faculty where id=${faculty_id}
     `;
+
   const result = await db.get(getQuery);
   const obj = { susses: true, data: result };
+
   res.send(obj);
 });
 
+//GET Course details with respect to course_id
 app.get("/course/:course_id/", authenticationToken, async (req, res) => {
   const { course_id } = req.params;
+
   const getQuery = `
        select *
        from course inner join SLOT_COURSE on 
        course.id=SLOT_COURSE.course_id
        where course.id=${course_id}
     `;
+
   const result = await db.get(getQuery);
-  res.send(result);
+  const obj = { susses: true, data: result };
+
+  res.send(obj);
 });
 
+//Add SLOT
 app.post(
   "/admin/slot",
   authenticationToken,
   getUserDetailsFromPayLoad,
   async (req, res) => {
     const { role } = req;
+
+    //Giving access only to admin user's
     if (role === "admin") {
       const { id, timings } = req.body;
       const { day, start, end } = timings;
+
       const postSlotQuery = `
       Insert into slot values('${id}');
       `;
       const postTimingsQuery = `
       Insert into timings values('${day}','${start}','${end}','${id}');
       `;
+
       const slot_result = await db.run(postSlotQuery);
       const time_result = await db.run(postTimingsQuery);
+
       const obj = { susses: true, data: req.body };
+
       res.send(obj);
     } else {
       res.status(400);
@@ -136,51 +157,52 @@ app.post(
   }
 );
 
+//GET Timetable by joining registered_course, slot_courses, course, faculty, slot, timings
 app.get(
   "/timetable/",
   authenticationToken,
   getUserDetailsFromPayLoad,
   async (req, res) => {
     const { userId } = req;
-    console.log(userId);
+
     const getQuery = `
-       SELECT
-  COURSE.name AS COURSE_NAME,
-  COURSE.course_type AS COURSE_TYPE,
-  FACULTY.name AS FACULTY_NAME,
-  SLOT_COURSE.slot_id AS SLOT_ID,
-  TIMINGS.DAY AS DAY,
-  TIMINGS.START AS START,
-  TIMINGS.
-END AS
-END
-FROM
-  (
-    (
-      (
-        REGISTERED_COURSES
-        INNER JOIN SLOT_COURSE ON REGISTERED_COURSES.slot_course_id = SLOT_COURSE.id
-      ) AS t
-      INNER JOIN COURSE ON t.course_id = COURSE.id
-    ) AS r
-    INNER JOIN FACULTY ON r.faculty_id = FACULTY.id
-  ) AS s
-  INNER JOIN timings ON s.slot_id = timings.slot_id
-WHERE
-  REGISTERED_COURSES.student_id = ${userId};
+        SELECT
+        COURSE.name AS COURSE_NAME,
+        COURSE.course_type AS COURSE_TYPE,
+        FACULTY.name AS FACULTY_NAME,
+        SLOT_COURSE.slot_id AS SLOT_ID,
+        TIMINGS.DAY AS DAY,
+        TIMINGS.START AS START,
+        TIMINGS.END AS END
+        FROM
+        (
+            (
+                (
+                    REGISTERED_COURSES
+                    INNER JOIN SLOT_COURSE ON REGISTERED_COURSES.slot_course_id = SLOT_COURSE.id
+                ) AS t
+                INNER JOIN COURSE ON t.course_id = COURSE.id
+            ) AS r
+            INNER JOIN FACULTY ON r.faculty_id = FACULTY.id
+        ) AS s
+        INNER JOIN timings ON s.slot_id = timings.slot_id
+        WHERE REGISTERED_COURSES.student_id = ${userId};
     `;
+
     const result = await db.all(getQuery);
-    console.log(result);
-    res.send(result);
+
+    res.send({ success: true, data: result });
   }
 );
 
+//Add Faculty
 app.post(
   "/admin/faculty",
   authenticationToken,
   getUserDetailsFromPayLoad,
   async (req, res) => {
     const { role } = req;
+    //Giving access to admin only
     if (role === "admin") {
       const { id, name } = req.body;
       const postFacultyQuery = `
@@ -196,17 +218,21 @@ app.post(
   }
 );
 
+//Add student
 app.post(
   "/admin/student",
   authenticationToken,
   getUserDetailsFromPayLoad,
   async (req, res) => {
     const { role } = req;
+    //Giving access to admin only
     if (role === "admin") {
       const { id, name } = req.body;
+
       const postStudentQuery = `
       Insert into student values(${id},'${name}',"student");
       `;
+
       const time_result = await db.run(postStudentQuery);
       const obj = { susses: true, data: req.body };
       res.send(obj);
@@ -217,30 +243,41 @@ app.post(
   }
 );
 
+//Add Course
 app.post(
   "/admin/course/",
   authenticationToken,
   getUserDetailsFromPayLoad,
   async (req, res) => {
     const { role } = req;
+
+    //Giving access to admin only
     if (role === "admin") {
       const { id, name, slot_ids, faculty_ids, course_type } = req.body;
       const count = `
       SELECT COUNT(*) FROM slot_course;
       `;
+      //To avoid unique key constraint
       const primaryId = await db.get(count);
-      const resultId = primaryId + 1;
+      let resultId = primaryId + 1;
+      let dummy = id;
       for (let i = 0; i < faculty_ids.length; i++) {
         const postQuery = `
-                    insert into course values(${id},'${name}','${course_type}',${faculty_ids[i]})
+                    insert into course values(${dummy},'${name}','${course_type}',${faculty_ids[i]})
                 `;
         const postSlotCourse = `
                     insert into slot_course values (${resultId},'${slot_ids[i]}',${id})
                 `;
+
+        //Updating Key Value
+        dummy = dummy + 1;
+        resultId = resultId + 1;
         const result1 = await db.run(postQuery);
         const result2 = await db.run(postSlotCourse);
       }
+
       const obj = { success: true, data: req.body };
+
       res.send(obj);
     } else {
       res.status(400);
@@ -249,6 +286,7 @@ app.post(
   }
 );
 
+//Student Registration
 app.post(
   "/register/",
   authenticationToken,
@@ -256,6 +294,8 @@ app.post(
   async (req, res) => {
     const { userId } = req;
     const { course_id, slot_ids } = req.body;
+
+    //Verifying whether the slot and course pair exist or not.
     const getQuery = `
     select * from REGISTERED_COURSES
         INNER JOIN SLOT_COURSE ON REGISTERED_COURSES.slot_course_id = SLOT_COURSE.id
@@ -268,26 +308,26 @@ app.post(
         break;
       }
     }
+
+    //Checking the clashes with other slots.
     if (flag === 1) {
       const count = `
       SELECT COUNT(*) FROM registered_courses;
       `;
       const primaryId = await db.get(count);
       const resultId = primaryId + 1;
+
       const getSlotCourseId = `
       SELECT id FROM slot_course where course_id=${course_id} and slot_id='${slot_ids}';
       `;
       const slot_course_id = await db.get(getSlotCourseId);
+
       const postQuery = `
       INSERT INTO registered_courses values(${resultId},${slot_course_id},${userId})
       `;
       const finalResult = await db.run(postQuery);
 
-      const response = `
-      SELECT * FROM registered_courses where student_id=${userId};
-      `;
-      const responseObj = await db.all(response);
-      res.send({ success: true, data: responseObj });
+      res.send("Success");
     } else {
       console.log("Slot Crash, Try Again!!!");
     }
