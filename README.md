@@ -65,6 +65,9 @@ Slot_Course -> Junction Table
 | slot_course_id | VARCHAR |
 | student_id     | VARCHAR |
 
+![image](https://user-images.githubusercontent.com/91132244/222956968-99779eeb-3cc6-4a37-a4d3-53d1da092a44.png)
+
+
 Please git clone my project in your system, for testing purpose.
 
 ## Install
